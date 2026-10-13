@@ -1,6 +1,5 @@
 streamlit
 mediapipe
-opencv-python-headless
 numpy
 pillow
 joblib

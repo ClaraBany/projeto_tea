@@ -1,8 +1,9 @@
 # Classificador de landmarks faciais
 
 Aplicação Streamlit para enviar uma foto, escolher um modelo treinado e visualizar
-a classificação **TEA vs. NEURO**. A aplicação extrai 478 landmarks faciais com
-MediaPipe e envia as coordenadas ao pipeline selecionado.
+a classificação **TEA vs. NEURO**. A aplicação extrai landmarks faciais com a
+API MediaPipe Tasks Face Landmarker e envia as coordenadas ao pipeline selecionado.
+O arquivo de modelo da tarefa está em `assets/face_landmarker.task`.
 
 > Os modelos treinados não são incluídos neste repositório. Adicione pelo menos
 > um arquivo `.joblib` em `models/` antes de usar a predição ou publicar o app.
@@ -39,12 +40,16 @@ No repositório, os arquivos devem ficar assim:
 models/
 ├── svc_v1.joblib
 └── svc_v1.json       # opcional
+assets/
+└── face_landmarker.task
 ```
 
 Cada arquivo `.joblib` aparece automaticamente como opção no seletor do app.
 O objeto deve ser um pipeline compatível com scikit-learn que aceite um vetor
 com as coordenadas `(x0, y0, x1, y1, ...)` dos landmarks. Por padrão, são usados
-os 478 pontos em pixels. Transformadores ou classes customizadas usados no
+os 478 pontos em pixels. A extração usa o arquivo `assets/face_landmarker.task`,
+incluído no projeto, e a mesma API MediaPipe Tasks utilizada no código de
+treinamento. Transformadores ou classes customizadas usados no
 pipeline devem estar definidos em `custom.py`, para que o `joblib` consiga
 carregá-los no deploy. No Colab, importe a classe desse módulo antes de montar
 e exportar o pipeline (por exemplo, `from custom import PrinceGPA`); não
