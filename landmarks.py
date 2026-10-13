@@ -46,7 +46,7 @@ def draw_landmarks(
     used = set(keep) if keep is not None else set(range(len(pts_px)))
     radius = max(1, min(image.size) // 400)
     for index, (x, y) in enumerate(pts_px):
-        color = (255, 0, 0) if index in used else (160, 160, 160)
+        color = (0, 255, 0) if index in used else (160, 160, 160)
         draw.ellipse(
             (int(x) - radius, int(y) - radius, int(x) + radius, int(y) + radius),
             fill=color,
