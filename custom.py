@@ -1,8 +1,9 @@
 """Classes próprias usadas no pipeline.
 
 IMPORTANTE: o pickle/joblib guarda o caminho da classe (ex.: custom.PrinceGPA).
-Por isso ela precisa viver aqui e não dentro do notebook (onde vira __main__.PrinceGPA
-e não pode ser carregada pelo Streamlit).
+Defina classes do pipeline aqui e importe-as no notebook antes de treinar/exportar.
+O registry também mantém compatibilidade com modelos antigos que usam
+__main__.PrinceGPA.
 """
 import numpy as np
 import prince

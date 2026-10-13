@@ -46,7 +46,11 @@ O objeto deve ser um pipeline compatível com scikit-learn que aceite um vetor
 com as coordenadas `(x0, y0, x1, y1, ...)` dos landmarks. Por padrão, são usados
 os 478 pontos em pixels. Transformadores ou classes customizadas usados no
 pipeline devem estar definidos em `custom.py`, para que o `joblib` consiga
-carregá-los no deploy.
+carregá-los no deploy. No Colab, importe a classe desse módulo antes de montar
+e exportar o pipeline (por exemplo, `from custom import PrinceGPA`); não
+redefina a classe em uma célula do notebook, pois ela será salva como
+`__main__.PrinceGPA`. O carregador mantém compatibilidade com esse caminho
+antigo para o modelo `svc_gpa`.
 
 O JSON opcional, com o mesmo nome-base do modelo, pode configurar:
 

@@ -5,18 +5,17 @@ Configuração opcional: um .json com o MESMO nome do modelo, por exemplo:
     models/svc_v1.json
 """
 import json
+import __main__
 from dataclasses import dataclass
 from pathlib import Path
 
 import joblib
 import numpy as np
+import custom
 
-# Se o pipeline usa classes próprias (ex.: transformer de Procrustes), elas
-# precisam estar num módulo importável. Coloque-as em custom.py:
-try:
-    import custom  # noqa: F401
-except ImportError:
-    pass
+# Modelos antigos exportados do notebook podem referenciar __main__.PrinceGPA.
+# Redireciona essa referência para a implementação importável antes do joblib.load.
+__main__.PrinceGPA = custom.PrinceGPA
 
 MODELS_DIR = Path(__file__).parent / "models"
 
