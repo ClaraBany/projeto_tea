@@ -40,15 +40,29 @@ class LandmarkExtractor:
 def draw_landmarks(
     img_rgb: np.ndarray, pts_px: np.ndarray, keep: list[int] | None = None
 ) -> np.ndarray:
-    """Desenha os pontos. Os usados pelo modelo ficam em vermelho."""
+    """Desenha os usados pelo modelo em verde e os não usados em vermelho."""
     image = Image.fromarray(img_rgb.copy())
     draw = ImageDraw.Draw(image)
     used = set(keep) if keep is not None else set(range(len(pts_px)))
     radius = max(1, min(image.size) // 400)
     for index, (x, y) in enumerate(pts_px):
-        color = (0, 255, 0) if index in used else (160, 160, 160)
+        color = (0, 255, 0) if index in used else (255, 0, 0)
         draw.ellipse(
             (int(x) - radius, int(y) - radius, int(x) + radius, int(y) + radius),
             fill=color,
         )
     return np.asarray(image)
+
+def landmarks_usados(modelo, n_landmarks=478):
+    """Retorna os índices (0-based) dos landmarks que o modelo realmente usa."""
+    sel = getattr(modelo, "named_steps", {}).get("select")
+
+    if sel is None:                       # sem seleção: usa todos
+        return np.arange(n_landmarks)
+
+    if hasattr(sel, "get_support"):       # GenericUnivariateSelect (SVC)
+        cols = np.where(sel.get_support())[0]
+    else:                                 # ColumnTransformer (modelo_tea)
+        cols = np.asarray(sel.transformers_[0][2])
+
+    return np.unique(cols // 2)           # cada landmark ocupa 2 colunas (x, y)

@@ -2,7 +2,7 @@ import numpy as np
 import streamlit as st
 from PIL import Image, ImageOps
 
-from landmarks import LandmarkExtractor, draw_landmarks
+from landmarks import LandmarkExtractor, draw_landmarks, landmarks_usados
 from registry import list_models, load_model
 
 st.set_page_config(page_title="Classificador facial", layout="wide")
@@ -70,8 +70,9 @@ X = bundle.prepare(pts, w, h)
 col1, col2 = st.columns([3, 2])
 with col1:
     if mostrar_pontos:
-        img_show = draw_landmarks(img_rgb, pts, bundle.config["keep_indices"])
-        st.image(img_show, caption="Vermelho = pontos usados pelo modelo",
+        usados = landmarks_usados(bundle.pipeline, n_landmarks=len(pts))
+        img_show = draw_landmarks(img_rgb, pts, usados)
+        st.image(img_show, caption="Verde = usados; vermelho = não usados",
                  use_container_width=True)
     else:
         st.image(img_rgb, use_container_width=True)
