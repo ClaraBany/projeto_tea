@@ -86,8 +86,9 @@ executar código serializado.
 2. No [Streamlit Community Cloud](https://share.streamlit.io/), crie um app
    selecionando o repositório, a branch e `app.py` como arquivo principal.
 3. O serviço instalará as dependências Python listadas em `requirements.txt`
-   e as dependências de sistema listadas em `packages.txt` (`libgl1` e
-   `libglib2.0-0`, necessárias pelo OpenCV no ambiente Linux).
+   e as dependências de sistema listadas em `packages.txt` (`libgl1`,
+   `libglib2.0-0` e `libegl1`, necessárias pelas bibliotecas de visão no
+   ambiente Linux).
 
 O repositório precisa conter ao menos um `models/*.joblib` para habilitar o
 seletor e a predição. Verifique também os limites de tamanho de arquivo do
