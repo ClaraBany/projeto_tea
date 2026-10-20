@@ -1,6 +1,7 @@
 {
-  "descricao": "GPA (prince) + seleção univariada + SVC, 478 landmarks, TEA vs NEURO",
-  "coords": "pixel",
+  "descricao": "Treinamento com dataset do kaggle. Modelo com o algoritmo SVC. Foi utilizado Grid para identificar os melhores parâmetros. Pipeline: GPA, Seleção de features com GenericUnivariateSelect, predição",
+  "parametros": "",
+  "results": "72% acurácia, 69% recall tea",
   "keep_indices": null,
-  "labels": null
+  "labels": "TEA x NEURO"
 }

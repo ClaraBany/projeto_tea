@@ -5,17 +5,13 @@ Configuração opcional: um .json com o MESMO nome do modelo, por exemplo:
     models/svc_v1.json
 """
 import json
-import __main__
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 import joblib
 import numpy as np
 import custom
-
-# Modelos antigos exportados do notebook podem referenciar __main__.PrinceGPA.
-# Redireciona essa referência para a implementação importável antes do joblib.load.
-__main__.PrinceGPA = custom.PrinceGPA
 
 MODELS_DIR = Path(__file__).parent / "models"
 
@@ -52,13 +48,20 @@ class ModelBundle:
         """
         pred = self.pipeline.predict(X)[0]
         labels = self.config["labels"]
-        nome = labels[int(pred)] if labels is not None else pred
+        if isinstance(labels, list) and isinstance(pred, (int, np.integer)):
+            nome = labels[int(pred)]
+        else:
+            nome = pred
 
         probs, score = None, None
         if hasattr(self.pipeline, "predict_proba"):
             try:
                 p = self.pipeline.predict_proba(X)[0]
-                classes = labels if labels is not None else self.pipeline.classes_
+                classes = (
+                    labels
+                    if isinstance(labels, list)
+                    else self.pipeline.classes_
+                )
                 probs = {str(c): float(v) for c, v in zip(classes, p)}
             except Exception:
                 probs = None
@@ -77,6 +80,9 @@ def list_models() -> list[str]:
 
 
 def load_model(name: str) -> ModelBundle:
+    # Streamlit pode recriar o módulo __main__ entre execuções do script.
+    # Registre a classe no módulo atualmente usado pelo unpickler em cada carga.
+    sys.modules["__main__"].PrinceGPA = custom.PrinceGPA
     pipeline = joblib.load(MODELS_DIR / f"{name}.joblib")
     config = dict(DEFAULT_CONFIG)
     cfg_path = MODELS_DIR / f"{name}.json"

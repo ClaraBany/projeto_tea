@@ -1,0 +1,7 @@
+{
+  "descricao": "Treinamento com dataset interno. Modelo RandomForest treinado para classificar TEA x NEURO a partir de landmarks faciais do MediaPipe (coordenadas x,y). Os rostos são alinhados por Análise Generalizada de Procrustes (GPA, biblioteca prince), incorporada ao pipeline. Cada landmark recebeu uma pontuação de relevância (Fisher Score ou Distância de Mahalanobis) e foram mantidos apenas os que atingiram o limiar de melhor desempenho. Foram comparados RandomForest, Árvore de Decisão e KNN, usando as coordenadas diretas ou 2 componentes PCA, com validação cruzada estratificada de 5 folds e balanced accuracy. A melhor combinação (<metrica>, limiar <limiar>, <tipo_feature>, balanced accuracy de <valor>) foi treinada com todos os dados.",
+  "parametros": "RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42); seleção por dist_mahalanobis com limiar 0.6095 ; features: landmarks",
+  "results": "75% acurácia",
+  "keep_indices": null,
+  "labels": null
+}
