@@ -5,6 +5,9 @@ a classificação **TEA vs. NEURO**. A aplicação extrai landmarks faciais com 
 API MediaPipe Tasks Face Landmarker e envia as coordenadas ao pipeline selecionado.
 O arquivo de modelo da tarefa está em `assets/face_landmarker.task`.
 
+Use a opção **Sobre os modelos** na navegação para consultar as etapas dos
+pipelines salvos e as informações de treinamento documentadas para cada modelo.
+
 > Os modelos treinados não são incluídos neste repositório. Adicione pelo menos
 > um arquivo `.joblib` em `models/` antes de usar a predição ou publicar o app.
 

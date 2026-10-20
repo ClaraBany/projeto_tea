@@ -18,8 +18,94 @@ def get_model(name: str):
     return load_model(name)
 
 
-# ---------------- Sidebar: escolha do modelo ----------------
-st.sidebar.header("Modelo")
+def render_model_page(modelos: list[str]) -> None:
+    st.title("Conheça os modelos")
+    st.markdown(
+        "Veja como cada modelo transforma uma imagem em uma classificação. "
+        "As etapas abaixo são lidas do pipeline salvo; os detalhes de treino "
+        "são exibidos quando foram documentados junto ao modelo."
+    )
+
+    nome = st.selectbox("Modelo", modelos, key="modelo_documentacao")
+    try:
+        bundle = get_model(nome)
+    except Exception as e:
+        st.error(f"Falha ao carregar '{nome}': {e}")
+        st.stop()
+
+    config = bundle.config
+    with st.container(border=True):
+        st.subheader(nome.replace("_", " ").title())
+        descricao = config.get("descricao", "").strip()
+        if descricao:
+            st.write(descricao)
+        else:
+            st.info(
+                "Este modelo não tem uma ficha de treinamento. "
+                "As etapas do pipeline salvo estão listadas abaixo, mas "
+                "a origem dos dados e a validação não foram documentadas."
+            )
+
+        cols = st.columns(3)
+        cols[0].metric(
+            "Coordenadas de entrada",
+            "Normalizadas" if config.get("coords") == "normalized" else "Pixels",
+        )
+        indices = config.get("keep_indices")
+        if indices is not None:
+            landmark_count = len(indices)
+        else:
+            selector = getattr(bundle.pipeline, "named_steps", {}).get("select")
+            if selector is not None and (
+                hasattr(selector, "get_support")
+                or hasattr(selector, "transformers_")
+            ):
+                landmark_count = len(landmarks_usados(bundle.pipeline))
+            else:
+                landmark_count = 478
+        cols[1].metric(
+            "Landmarks usados",
+            landmark_count,
+        )
+        resultado = config.get("results")
+        cols[2].metric("Resultado registrado", resultado or "Não informado")
+
+    st.subheader("Como a imagem percorre o modelo")
+    st.caption(
+        "O detector facial encontra 478 pontos. O pipeline aplica as "
+        "transformações abaixo e então produz a classe prevista."
+    )
+    steps = getattr(bundle.pipeline, "steps", None)
+    if steps:
+        stages = ["Landmarks faciais"]
+        for step_name, transformer in steps:
+            class_name = type(transformer).__name__
+            if class_name == "PrinceGPA":
+                description = "Alinhamento Procrustes (GPA)"
+            elif class_name == "GenericUnivariateSelect":
+                description = "Seleção estatística de atributos"
+            elif class_name.endswith("Classifier") or class_name == "SVC":
+                description = f"Classificador {class_name}"
+            else:
+                description = class_name
+            stages.append(f"{step_name}: {description}")
+        stages.append("Classe prevista")
+        st.markdown(" → ".join(stages))
+    else:
+        st.write(f"Pipeline: {type(bundle.pipeline).__name__}")
+
+    parametros = config.get("parametros")
+    if parametros:
+        with st.expander("Parâmetros registrados"):
+            st.write(parametros)
+    st.info(
+        "A classificação é experimental e não substitui avaliação ou "
+        "diagnóstico profissional. Métricas registradas dependem do "
+        "procedimento de avaliação usado no treinamento."
+    )
+
+
+# ---------------- Navegação e escolha do modelo ----------------
 modelos = list_models()
 if not modelos:
     st.sidebar.error("Nenhum modelo encontrado em models/")
@@ -29,6 +115,13 @@ if not modelos:
     )
     st.stop()
 
+st.sidebar.header("Navegação")
+pagina = st.sidebar.radio("Página", ["Classificação", "Sobre os modelos"])
+if pagina == "Sobre os modelos":
+    render_model_page(modelos)
+    st.stop()
+
+st.sidebar.header("Modelo")
 nome_modelo = st.sidebar.selectbox("Selecione", modelos)
 try:
     bundle = get_model(nome_modelo)
