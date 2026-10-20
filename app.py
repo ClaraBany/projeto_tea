@@ -2,7 +2,12 @@ import numpy as np
 import streamlit as st
 from PIL import Image, ImageOps
 
-from landmarks import LandmarkExtractor, draw_landmarks, landmarks_usados
+from manual_landmarks import parse_landmarks
+from landmarks import (
+    LandmarkExtractor,
+    draw_landmarks,
+    landmarks_usados,
+)
 from registry import list_models, load_model
 
 st.set_page_config(page_title="Classificador facial", layout="wide")
@@ -142,33 +147,80 @@ mostrar_pontos = st.sidebar.checkbox("Mostrar landmarks na imagem", value=True)
 
 # ---------------- Corpo ----------------
 st.title("Classificação a partir de landmarks faciais")
-arquivo = st.file_uploader("Envie uma imagem", type=["jpg", "jpeg", "png", "webp"])
+origem = st.radio(
+    "Como deseja informar os dados?",
+    ["Enviar imagem", "Colar landmarks manualmente"],
+    horizontal=True,
+)
+img_rgb = None
+pts = None
+dimensoes_imagem = None
 
-if arquivo is None:
-    st.info("Envie uma foto de rosto para começar.")
-    st.stop()
+if origem == "Enviar imagem":
+    arquivo = st.file_uploader(
+        "Envie uma imagem", type=["jpg", "jpeg", "png", "webp"]
+    )
+    if arquivo is None:
+        st.info("Envie uma foto de rosto para começar.")
+        st.stop()
 
-img = ImageOps.exif_transpose(Image.open(arquivo)).convert("RGB")
-img_rgb = np.array(img)
-h, w = img_rgb.shape[:2]
+    img = ImageOps.exif_transpose(Image.open(arquivo)).convert("RGB")
+    img_rgb = np.array(img)
+    h, w = img_rgb.shape[:2]
+    dimensoes_imagem = f"{w}×{h} px"
 
-pts = get_extractor().extract(img_rgb)
-if pts is None:
-    st.error("Nenhum rosto detectado. Tente outra imagem.")
-    st.image(img_rgb, use_container_width=True)
-    st.stop()
+    pts = get_extractor().extract(img_rgb)
+    if pts is None:
+        st.error("Nenhum rosto detectado. Tente outra imagem.")
+        st.image(img_rgb, use_container_width=True)
+        st.stop()
 
-X = bundle.prepare(pts, w, h)
+    X = bundle.prepare(pts, w, h)
+else:
+    unidade = (
+        "normalizadas (x e y divididos pela largura e altura)"
+        if bundle.config["coords"] == "normalized"
+        else "em pixels"
+    )
+    st.caption(
+        f"Cole o conteúdo da coluna `landmarks` como 478 linhas com `x, y` "
+        f"ou como uma lista de 956 números. Informe coordenadas {unidade}, "
+        "na ordem "
+        "`x0, y0, x1, y1, ...`."
+    )
+    texto_landmarks = st.text_area(
+        "Landmarks (478 pares x, y)",
+        height=220,
+        placeholder="0.45, 0.32\n0.46, 0.33\n...",
+    )
+    if not texto_landmarks.strip():
+        st.info("Cole os landmarks para começar.")
+        st.stop()
+
+    try:
+        pts = parse_landmarks(texto_landmarks)
+    except ValueError as e:
+        st.error(str(e))
+        st.stop()
+
+    if bundle.config["keep_indices"] is not None:
+        pts_modelo = pts[bundle.config["keep_indices"]]
+    else:
+        pts_modelo = pts
+    X = pts_modelo.reshape(1, -1)
 
 col1, col2 = st.columns([3, 2])
 with col1:
-    if mostrar_pontos:
-        usados = landmarks_usados(bundle.pipeline, n_landmarks=len(pts))
-        img_show = draw_landmarks(img_rgb, pts, usados)
-        st.image(img_show, caption="Verde = usados; vermelho = não usados",
-                 use_container_width=True)
+    if img_rgb is not None:
+        if mostrar_pontos:
+            usados = landmarks_usados(bundle.pipeline, n_landmarks=len(pts))
+            img_show = draw_landmarks(img_rgb, pts, usados)
+            st.image(img_show, caption="Verde = usados; vermelho = não usados",
+                     use_container_width=True)
+        else:
+            st.image(img_rgb, use_container_width=True)
     else:
-        st.image(img_rgb, use_container_width=True)
+        st.write(f"Landmarks informados: {len(pts)}")
 
 with col2:
     try:
@@ -192,4 +244,6 @@ with col2:
             )
     with st.expander("Detalhes técnicos"):
         st.write(f"Entrada do modelo: {X.shape}")
-        st.write(f"Imagem: {w}×{h} px")
+        st.write(f"Origem dos dados: {origem}")
+        if dimensoes_imagem:
+            st.write(f"Imagem: {dimensoes_imagem}")

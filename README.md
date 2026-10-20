@@ -4,6 +4,11 @@ Aplicação Streamlit para enviar uma foto, escolher um modelo treinado e visual
 a classificação **TEA vs. NEURO**. A aplicação extrai landmarks faciais com a
 API MediaPipe Tasks Face Landmarker e envia as coordenadas ao pipeline selecionado.
 O arquivo de modelo da tarefa está em `assets/face_landmarker.task`.
+Também é possível colar manualmente os 478 pares de landmarks, usando as unidades
+esperadas pelo modelo selecionado (pixels ou coordenadas normalizadas). O campo
+aceita 478 linhas com `x, y` ou uma lista de 956 números; também é possível colar
+diretamente o conteúdo de uma célula da coluna `landmarks` do CSV, sem incluir
+outras colunas como `group`.
 
 Use a opção **Sobre os modelos** na navegação para consultar as etapas dos
 pipelines salvos e as informações de treinamento documentadas para cada modelo.
